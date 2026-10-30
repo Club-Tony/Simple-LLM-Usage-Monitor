@@ -1,0 +1,11 @@
+{
+  "name": "llm-usage-monitor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local usage-limit monitor for Codex, Claude and Grok, with one optional host-named add-on provider",
+  "type": "module",
+  "scripts": {
+    "snapshot": "node usage-scraper.mjs --mode snapshot",
+    "test": "node --test usage-classification.test.mjs theme-contrast.test.mjs gui-source.test.mjs token-cache.test.mjs debug-redaction.test.mjs claude-account-label.test.mjs sqlite-tool.test.mjs firefox-cookie-db.test.mjs node-install.test.mjs cli-credentials.test.mjs provider-settings.test.mjs addon-provider.test.mjs bridge-providers.test.mjs installer.test.mjs"
+  }
+}

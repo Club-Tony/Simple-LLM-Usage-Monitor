@@ -1,0 +1,8 @@
+# Text is stored with LF; each checkout uses its own line endings.
+* text=auto
+# cmd.exe needs CRLF in batch files.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+installer/BundleStub.cmd.txt text eol=crlf
+# Never convert or diff binaries.
+*.exe binary

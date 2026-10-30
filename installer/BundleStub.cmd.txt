@@ -1,0 +1,35 @@
+@echo off
+setlocal EnableExtensions DisableDelayedExpansion
+title Simple LLM Usage Monitor Setup
+rem Simple LLM Usage Monitor one-click installer. This file carries the release ZIP as Base64 after
+rem its last marker line. The PowerShell between the two marker lines checks the ZIP's SHA-256
+rem (below) before anything is unpacked, unpacks it to a new folder in %TEMP%, runs its
+rem setup\Setup-LLMUsageMonitor.ps1, and deletes the folder again. Arguments are passed on.
+set "LLMUSAGE_SELF=%~f0"
+set "LLMUSAGE_EXTRACTOR=%TEMP%\LLMUsageMonitor-Extract-%RANDOM%%RANDOM%%RANDOM%.ps1"
+set "LLMUSAGE_PS=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
+if not exist "%LLMUSAGE_PS%" (
+    echo Windows PowerShell was not found at %LLMUSAGE_PS%. Setup needs it.
+    goto :done9
+)
+"%LLMUSAGE_PS%" -NoLogo -NoProfile -Command "$t=[IO.File]::ReadAllText($env:LLMUSAGE_SELF);$i=$t.LastIndexOf('#===EXTRACTOR===');$j=$t.LastIndexOf('#===PAYLOAD===');if($i -lt 0 -or $j -le $i){exit 9};[IO.File]::WriteAllText($env:LLMUSAGE_EXTRACTOR,$t.Substring($i,$j-$i))"
+if errorlevel 1 goto :stagefailed
+"%LLMUSAGE_PS%" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%LLMUSAGE_EXTRACTOR%" -BundleSelfPath "%LLMUSAGE_SELF%" -BundleSha256 __PAYLOAD_SHA256__ %*
+set "LLMUSAGE_EXIT=%ERRORLEVEL%"
+del "%LLMUSAGE_EXTRACTOR%" >nul 2>&1
+if "%LLMUSAGE_BUNDLE_NOLAUNCH%"=="1" exit /b %LLMUSAGE_EXIT%
+if not "%~1"=="" exit /b %LLMUSAGE_EXIT%
+echo.
+echo Press Enter to exit.
+pause >nul
+exit /b %LLMUSAGE_EXIT%
+:stagefailed
+del "%LLMUSAGE_EXTRACTOR%" >nul 2>&1
+echo This installer file is incomplete or damaged. Download it again.
+:done9
+if "%LLMUSAGE_BUNDLE_NOLAUNCH%"=="1" exit /b 9
+if not "%~1"=="" exit /b 9
+echo.
+echo Press Enter to exit.
+pause >nul
+exit /b 9

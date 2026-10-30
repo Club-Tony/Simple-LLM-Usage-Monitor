@@ -1,0 +1,8 @@
+# Release build output (installer/Build-UsageMonitorRelease.ps1) and npm installs.
+dist/
+node_modules/
+# Local debug and snapshot output from running the scraper by hand.
+test.txt
+*.debug.txt
+llm-usage-snapshot.txt
+snapshot.log
