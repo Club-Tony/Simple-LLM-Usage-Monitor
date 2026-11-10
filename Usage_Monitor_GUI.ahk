@@ -311,11 +311,12 @@ usageMonitorFlashHwndR := 0
 usageMonitorPrevActiveHwnd := 0
 ; --- Idle tiers and auto-attach -----------------------------------------------
 ; A shown popup costs something only while it polls: the 150ms anchor tick, the 200ms
-; focus-border check, and a snapshot (PowerShell + Node) every 15-60s. Those now run only while
-; someone is using the popup; otherwise it sleeps until Windows reports something.
-;   active     - a tracked app or the popup has focus: everything runs as before
-;   hover      - another app has focus but the cursor is over the popup: tracking tick only
-;   background - another app has focus: nothing runs until a SHELLHOOK event or a hover
+; focus-border check, and a snapshot (PowerShell + Node) every 15-60s. The tracking polls run only
+; while someone is using the popup; the snapshot keeps running while the overlay is on screen, so
+; its numbers stay current whatever app has focus. Only being away stops it.
+;   active     - a tracked app or the popup has focus: everything runs
+;   hover      - another app has focus but the cursor is over the popup: tracking tick + refresh
+;   background - another app has focus: refresh only; tracking waits for a SHELLHOOK event or a hover
 ;   away       - no input for usageMonitorAwayAfterMs: nothing runs until the first raw input
 ; When the last tracked window closes or minimizes, the popup parks instead of closing: hidden,
 ; still restored on the next start, and re-shown when one appears. Two wake paths, because a
@@ -1020,13 +1021,11 @@ UsageMonitorPopupIsActive()
     return (usageMonitorHwnd && WinActive("ahk_id " . usageMonitorHwnd))
 }
 
-; Docked to an app, only the active tier polls: away from that app the popup is hidden behind
-; other work. Floating on screen it stays in view, so it keeps refreshing until the user is away.
+; Tiers in which the visible overlay keeps auto-refreshing, docked or floating: a docked popup
+; stays on screen while another app has focus, so its numbers must not freeze. Only away pauses it.
 UsageMonitorTierRefreshes(tier)
 {
-    if (tier = "active")
-        return true
-    return UsageMonitorScreenAnchorActive() && (tier = "hover" || tier = "background")
+    return (tier = "active" || tier = "hover" || tier = "background")
 }
 
 UsageMonitorLoadViewMode()
@@ -3569,8 +3568,8 @@ UsageMonitorDesiredIdleTier()
     WinGet, activeHwnd, ID, A
     if (activeHwnd && (activeHwnd = usageMonitorHwnd || activeHwnd = usageMonitorResetsPanelHwnd))
         return "active"
-    ; Docked, the tracked apps count as "using the popup". Floating, they are just other apps:
-    ; the popup still refreshes in the background tier (UsageMonitorTierRefreshes).
+    ; Docked, the tracked apps count as "using the popup". Floating, they are just other apps.
+    ; Either way the popup still refreshes in the background tier (UsageMonitorTierRefreshes).
     if (!UsageMonitorScreenAnchorActive() && activeHwnd
         && (activeHwnd = usageMonitorLastTrackedHwnd || UsageMonitorIsTrackedAppWindow(activeHwnd)))
         return "active"
@@ -6666,7 +6665,17 @@ UsageMonitorUpdatePassthrough()
 }
 
 UsageMonitorAutoRefreshTimer:
-    if (usageMonitorVisible && UsageMonitorTierRefreshes(usageMonitorIdleTier))
+    if (!usageMonitorVisible)
+        return
+    if (usageMonitorIdleTier = "background")
+    {
+        ; No tracking tick runs in background, so this tick is what notices the user went away.
+        ; A tier change settles refresh itself (away stops it; the others resume it).
+        UsageMonitorSetIdleTier(UsageMonitorDesiredIdleTier())
+        if (usageMonitorIdleTier != "background")
+            return
+    }
+    if (UsageMonitorTierRefreshes(usageMonitorIdleTier))
         UsageMonitorRequestRefresh(true)   ; silent: values change in place, no load cycle
 return
 

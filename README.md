@@ -512,11 +512,12 @@ else installs nothing.
   hidden it listens for window events and also runs one cheap window check every 2 seconds, so a
   missed event can't leave it hidden. `Esc` or `X` closes it for real; it then stays
   closed until the next `Alt+Y`.
-- It only polls while you are using it. With a tracked app or the popup focused it follows its anchor
-  every 150 ms and refreshes on the adaptive 15-60 s cadence. With another app focused, after 5 minutes
-  without keyboard or mouse input, or while hidden waiting for an app, nothing runs at all: Windows wakes
-  it when a window activates, when the cursor reaches the popup, or on your next input. A snapshot older
-  than the cadence refreshes once when you come back; quick app switches reuse the existing schedule.
+- While the overlay is on screen it keeps refreshing on the adaptive 15-60 s cadence, whatever app has
+  focus. Window tracking is what sleeps: with a tracked app or the popup focused it follows its anchor
+  every 150 ms; with another app focused that tracking stops until Windows reports a window activating
+  or the cursor reaches the popup. After 5 minutes without keyboard or mouse input, or while hidden
+  waiting for an app, nothing runs at all until your next input or a tracked window appears. A snapshot
+  older than the cadence refreshes once when you come back; quick app switches reuse the existing schedule.
 - The full-view drag handle and mini-view body use a hand cursor on hover and a closed-hand cursor while dragging.
 - Full view stays readable while idle, then drops to about 90% transparent / 10% opaque when the mouse
   is over the popup. Non-interactive areas remain click-through; buttons, links,
