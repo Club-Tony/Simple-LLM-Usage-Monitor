@@ -461,7 +461,8 @@ else installs nothing.
 
 ## Hotkeys in popup
 
-- `Alt+Y` — open the popup, or focus it when it is already on screen. Pressing `Alt+Y` while the popup is
+- `Alt+Y` — open the popup, or focus it when it is already on screen; focusing it also fetches fresh numbers
+  in place (a fetch started in the last 10 seconds is reused). Pressing `Alt+Y` while the popup is
   focused only *unfocuses* it (the red focus border clears, the overlay stays put); it never hides the
   overlay. Focus returns to the window you came from.
 - `Esc` — close popup. Exception: in mini view with the transient `T` resets panel open, the first `Esc`
@@ -516,8 +517,11 @@ else installs nothing.
   focus. Window tracking is what sleeps: with a tracked app or the popup focused it follows its anchor
   every 150 ms; with another app focused that tracking stops until Windows reports a window activating
   or the cursor reaches the popup. After 5 minutes without keyboard or mouse input, or while hidden
-  waiting for an app, nothing runs at all until your next input or a tracked window appears. A snapshot
-  older than the cadence refreshes once when you come back; quick app switches reuse the existing schedule.
+  waiting for an app, nothing runs at all until your next input or a tracked window appears. When the app
+  it docks to comes back from minimized (or reopens), the popup reappears and fetches fresh numbers at once,
+  showing "Refreshing..." as it does when first opened. Otherwise a snapshot older than the cadence
+  refreshes once when you come back (from away, or to a tracked app); quick app switches reuse the
+  existing schedule.
 - The full-view drag handle and mini-view body use a hand cursor on hover and a closed-hand cursor while dragging.
 - Full view stays readable while idle, then drops to about 90% transparent / 10% opaque when the mouse
   is over the popup. Non-interactive areas remain click-through; buttons, links,

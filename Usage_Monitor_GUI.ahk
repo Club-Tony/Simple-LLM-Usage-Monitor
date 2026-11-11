@@ -157,6 +157,7 @@ usageMonitorSuppressAnchorCapture := false
 usageMonitorAutoRefreshMs := 60000        ; idle cadence, and the backoff ceiling
 usageMonitorAutoRefreshFastMs := 15000    ; cadence while values are moving
 usageMonitorAutoRefreshMinMs := 5000      ; floor for the [Debug] override
+usageMonitorRecentFetchMs := 10000        ; a docked app coming back or Alt+Y reuses a fetch this recent
 usageMonitorAutoRefreshOverrideMs := 0    ; [Debug] autoRefreshMs - fixed cadence, disables adaptation
 usageMonitorRefreshIdleStreakMax := 4     ; cap so the doubling can't overflow
 usageMonitorRefreshIdleStreak := 0        ; consecutive no-change snapshots
@@ -360,15 +361,30 @@ ToggleUsageMonitorPopup()
     if (usageMonitorVisible)
     {
         UsageMonitorFocusPopup()
+        ; The popup hotkey on a shown popup also fetches fresh numbers, silently in place.
+        if (!UsageMonitorFetchedRecently())
+            UsageMonitorRequestRefresh(true)
         return
     }
 
     ShowUsageMonitorPopup()
 }
 
+; True while a snapshot is running or one started under usageMonitorRecentFetchMs ago: a docked
+; app coming back or the popup hotkey then reuses it instead of starting another.
+UsageMonitorFetchedRecently()
+{
+    global usageMonitorFetchInFlight, usageMonitorLastFetchStartTick, usageMonitorRecentFetchMs
+
+    if (usageMonitorFetchInFlight)
+        return true
+    return (usageMonitorLastFetchStartTick && A_TickCount - usageMonitorLastFetchStartTick < usageMonitorRecentFetchMs)
+}
+
 ; automatic = true when the popup opens itself (startup restore, or a tracked window appearing
 ; while parked): no "no tracked app" tooltip, and a recent snapshot is reused instead of forcing
-; a visible reload.
+; a visible reload - except back from parked (the docked app was restored or reopened), which
+; fetches fresh numbers shown like a first open unless a fetch started moments ago.
 ShowUsageMonitorPopup(automatic := false)
 {
     global usageMonitorVisible, usageMonitorStatePath, usageMonitorGlobalsReady
@@ -377,6 +393,7 @@ ShowUsageMonitorPopup(automatic := false)
 
     if (!usageMonitorGlobalsReady)
         return false
+    wasParked := usageMonitorParked
 
     ; Re-read the mode on every open, so a settings.ini edit applies without a restart.
     UsageMonitorLoadAnchorMode()
@@ -421,10 +438,13 @@ ShowUsageMonitorPopup(automatic := false)
     UsageMonitorStartAnchorTracking()
     SetTimer, UsageMonitorFocusBorderCheck, 200
     UsageMonitorEnsureShellHook()
-    if (automatic && IsObject(usageMonitorLastSnapshot))
-        UsageMonitorResumeAutoRefresh()
-    else
+    ; A user open, a first open and a docked app coming back (unless a fetch started moments ago)
+    ; fetch now, visibly. Other automatic opens (startup restore, an anchor change) reuse the snapshot.
+    freshFetch := !automatic || !IsObject(usageMonitorLastSnapshot) || (wasParked && !UsageMonitorFetchedRecently())
+    if (freshFetch)
         UsageMonitorRequestRefresh()
+    else
+        UsageMonitorResumeAutoRefresh()
     return true
 }
 
