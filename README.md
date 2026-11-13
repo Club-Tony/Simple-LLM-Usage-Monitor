@@ -2,6 +2,24 @@
 
 How much of your Codex, Claude and Grok plan limits is left, in a small always-on-top Windows popup.
 
+![The full popup (Cyberpunk theme): Codex without a subscription, Claude daily, weekly and model-scoped weekly bars, Grok weekly credits](docs/popup-full.png)
+![The mini view (Default theme)](docs/popup-mini.png)
+
+## Quick start
+
+1. Download `LLMUsageMonitor-Setup-v<version>.bat` from the
+   [latest release](../../releases/latest) on this repository's Releases page
+   (or the `.zip` with the same files, if you want to read them first).
+2. Double-click it and press Enter. It installs for your user only, with no administrator rights, and brings its own
+   AutoHotkey and Node.js (checked against pinned SHA-256 hashes).
+3. Press **Alt+Y** or click the tray icon. The numbers come from the Claude Code, Codex CLI or Grok CLI login
+   you already have, or from Firefox signed in to those sites.
+
+Windows 10 or 11, 64-bit. Free and open source (MIT). No telemetry: the only network calls are the usage requests
+and setup's two downloads (see "Privacy and data"). Details are under "Install" below.
+
+## The app and host scripts
+
 `Usage_Monitor_GUI.ahk` is a library, and a host script includes it:
 
 - **`Usage_Monitor.ahk` - the standalone app.** Install it with the one-click installer (see "Install"
@@ -400,7 +418,7 @@ Windows choice stay), `[2] Uninstall` and `[3] Close`.
 
 ### Uninstall
 
-Settings > Apps > Installed apps > LLM Usage Monitor > Uninstall, or run the installer again and choose `2`.
+Settings > Apps > Installed apps > Simple LLM Usage Monitor > Uninstall, or run the installer again and choose `2`.
 It closes the app, then removes the install folder, the Start Menu shortcut, the Startup shortcut, the Settings >
 Apps entry, and in the data folder only the files the app itself writes (`settings.ini`, `snapshot.log`, the two
 caches, `tmp\` and any `node\` copy). It asks whether to keep `settings.ini` for a later reinstall. Anything else

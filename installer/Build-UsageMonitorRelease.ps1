@@ -41,8 +41,8 @@ $AppFiles = @(
 $SetupFiles = @('installer\Setup-LLMUsageMonitor.ps1', 'installer\runtime-pins.json', 'installer\Resolve-AHK-Runtime.ps1')
 # Part of the build but not shipped as files (paths relative to the tool folder, / separators).
 $BuildOnly = @('installer/Install.bat', 'installer/BundleStub.cmd.txt', 'installer/BundleExtractor.ps1', 'installer/Build-UsageMonitorRelease.ps1')
-# Never shipped: tests, the npm manifest and the git files.
-$ExcludedPatterns = @('*.test.mjs', 'Test-*.ps1', 'installer/Test-*.ps1', 'package.json', 'package-lock.json', '.gitignore', '.gitattributes')
+# Never shipped: tests, the npm manifest, the git files and the README's screenshots.
+$ExcludedPatterns = @('*.test.mjs', 'Test-*.ps1', 'installer/Test-*.ps1', 'package.json', 'package-lock.json', '.gitignore', '.gitattributes', 'docs/*')
 
 function Get-Sha256Hex([byte[]]$Bytes) {
     $hasher = [Security.Cryptography.SHA256]::Create()

@@ -6,3 +6,4 @@
 installer/BundleStub.cmd.txt text eol=crlf
 # Never convert or diff binaries.
 *.exe binary
+*.png binary
